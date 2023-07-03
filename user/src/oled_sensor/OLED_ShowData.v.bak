@@ -1,0 +1,31 @@
+
+
+
+
+
+module OLED_ShowData(
+	
+	input				sys_clk,
+	input				rst_n,
+	
+	input				ShowFont_req,		 //字符显示请求
+	input				write_done,			 //iic一组数据写完成
+	
+	output[23:0]	ShowFont_Data,		 //字符显示数据
+	
+	output			ShowFont_finish   //字符显示完成
+
+);
+
+
+
+
+
+
+
+
+
+
+
+
+endmodule 
