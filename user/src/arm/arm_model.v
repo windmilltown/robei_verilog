@@ -1,9 +1,9 @@
 //机械臂模块
-//输入：50MHz时钟clk，相对于底座x坐标[31:0]x，相对于底座y坐标[31:0]y，工作使能en，
-//复位信号rst，置位舵机信号[31:0]set_xita1，set_xita2，夹取信号catch
+//输入：50MHz时钟clk，相对于关节1x坐标[31:0]x，相对于关节1y坐标[31:0]y，逆解法工作使能en1，角度法工作使能en2
+//复位信号rst_n，置位舵机信号[31:0]set_xita1，set_xita2，夹取信号catch
 //输出：舵机1pwm波pwm1，舵机2pwm波pwm2，夹取舵机pwm波catch_pwm
-//功能：en为1时，根据输入的x，y坐标，计算出舵机1和舵机2的角度，输出pwm给舵机模块，若置位信号不为0，
-//则强制舵机转到那个角度。若catch为1，则夹取，否则放开。
+//功能：en1为1时，根据输入的x，y坐标，计算出舵机1和舵机2的角度，输出pwm给舵机模块，若en2为1，
+//则强制舵机转到置位角度。若catch为1，则夹取，否则放开。
 /*`include "../basic/arctan/arctan.v"
 `include "../basic/arctan/xita_tan_lut.v"
 `include "../basic/arcsin/arcsin.v"
@@ -21,12 +21,13 @@
 
 module arm_model(
     input clk,
-    input[31:0] x,
-    input[31:0] y,
-    input en,
-    input rstn,
-    input[31:0] set_xita1,
-    input[31:0] set_xita2,
+    input [31:0] x,
+    input [31:0] y,
+    input en1,
+    input en2,
+    input rst_n,
+    input [31:0] set_xita1,
+    input [31:0] set_xita2,
     input catch,
     output pwm1,
     output pwm2,
@@ -37,78 +38,63 @@ module arm_model(
     parameter [31:0] L2 = 32'h0012_0000;//18cm
     parameter [31:0] h = 32'h0005_3333;//5.2cm
 
-    wire [31:0] x_in;
-    wire [31:0] y_in;
-    assign x_in = (en == 0) ? 0 : x;
-    assign y_in = (en == 0) ? L1+L2+h : y;
-
     wire [31:0] xita1_inver;
     wire [31:0] xita2_inver;
-    wire [31:0] xita1;
-    wire [31:0] xita2;
+    wire valid;
+
+    reg [31:0] xita1;
+    reg [31:0] xita2;
+    reg [31:0] valid_prev;
+
     inverse 
+    #(
+      .L1(L1 ),
+      .L2(L2 ),
+      .h (
+          h )
+    )
     inverse_dut (
-    .x (x_in ),
-    .y (y_in ),
-    .xita1 (xita1_inver ),
-    .xita2  ( xita2_inver)
+      .clk (clk ),
+      .rst_n (rst_n ),
+      .valid ( valid),
+      .x (x ),
+      .y (y ),
+      .xita1 ( xita1_inver),
+      .xita2  ( xita2_inver)
     );
-    assign xita1 = (en==0)? 0:((set_xita1 == 0) ? xita1_inver : set_xita1);
-    assign xita2 = (en==0)? 0:((set_xita2 == 0) ? xita2_inver : set_xita2);
 
-    wire [19:0] duty1;
-    wire [19:0] duty2;
-    xita_to_duty 
-    xita_to_duty_dut1 (
-      .xita (xita1 ),
-      .duty  ( duty1)
-    );
-    xita_to_duty 
-    xita_to_duty_dut2 (
-      .xita (xita2 ),
-      .duty  ( duty2)
-    );
-    
-    parameter [11:0] gap = 1000;
-    pwm 
-    pwm_dut1 (
+    arm_angle 
+    arm_angle_dut (
       .clk (clk ),
-      .duty_need (duty1 ),
-      .duty_gap (gap ),
-      .pwm_out  ( pwm1)
-    );
-    pwm 
-    pwm_dut2 (
-      .clk (clk ),
-      .duty_need (duty2 ),
-      .duty_gap (gap ),
-      .pwm_out  ( pwm2)
-    );
-  
-    wire [19:0] catch_duty;
-    reg [19:0] catch_duty_reg;
-    assign catch_duty = catch_duty_reg;
-    pwm 
-    pwm_dut3 (
-      .clk (clk ),
-      .duty_need (catch_duty ),
-      .duty_gap (gap ),
-      .pwm_out  ( catch_pwm)
-    );
-  
+      .xita1 (xita1 ),
+      .xita2 (xita2 ),
+      .catch (catch ),
+      .pwm1 (pwm1 ),
+      .pwm2 (pwm2 ),
+      .pwm_catch  ( pwm_catch)
+    );  
 
-    always @(negedge clk or negedge rstn) 
+    always @(negedge clk or negedge rst_n) 
     begin
-        if(rstn==0)
+        if(rst_n==0)
         begin
-            catch_duty_reg<=125_000;
+          xita1<=0;
+          xita2<=0;
+          valid_prev<=0;
         end
         else
         begin
-            if(catch==1)
-                catch_duty_reg<=25_000;
-            else
-                catch_duty_reg<=125_000;
+          valid_prev<=valid;
+          if(en2==1)
+          begin
+            xita1<=set_xita1;
+            xita2<=set_xita2;
+          end
+          else if(en1==1 && valid==1 && valid_prev==0)
+          begin
+            xita1<=xita1_inver;
+            xita2<=xita2_inver;
+          end
         end
     end
 

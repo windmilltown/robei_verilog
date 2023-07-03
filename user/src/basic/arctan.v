@@ -61,6 +61,8 @@ module arctan(
             z <= 0;
             valid <= 0;
             cnt <= 0;
+            tan_abs_reg<=0;
+            xita<=0;
         end
         else
         begin

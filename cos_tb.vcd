@@ -1,5 +1,5 @@
 $date
-	Sat Jul 01 10:52:55 2023
+	Mon Jul 03 14:46:58 2023
 $end
 $version
 	Icarus Verilog
@@ -377,11 +377,16 @@ b0 F
 b0 E
 b0 "
 b0 1
+04
+05
+06
 b0 2
 b0 >
 b0 3
 b0 T
 b0 a
+b0 7
+b0 q
 0!
 0o
 0Q
@@ -400,6 +405,7 @@ b0 '
 b1 #
 b1 &
 #12000
+b0 y
 0o
 0Q
 0<
@@ -456,9 +462,8 @@ b110 n
 bx i
 0D
 1J
-04
-05
-06
+bx 7
+bx q
 0o
 0Q
 0<
@@ -477,6 +482,7 @@ b1 #
 b1 &
 #22000
 b100 k
+bx y
 b10 j
 b111 n
 0o

@@ -45,6 +45,12 @@ module qdiv_tb;
         dividend=32'h00070000;
         divisor=32'h00030000;
         #1000
+        dividend=32'h80060000;
+        divisor=32'h00030000;
+        #1000
+        dividend=32'h80060000;
+        divisor=32'h80020000;
+        #1000
         $finish;
     end
   end

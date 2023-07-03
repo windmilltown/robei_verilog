@@ -1,5 +1,5 @@
 $date
-	Sat Jul 01 20:07:59 2023
+	Mon Jul 03 14:44:04 2023
 $end
 $version
 	Icarus Verilog
@@ -136,6 +136,9 @@ b0 *
 b0 ?
 b0 <
 b0 ;
+b0 !
+b0 0
+b0 .
 0"
 b0 2
 b0 1

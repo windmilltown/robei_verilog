@@ -76,8 +76,12 @@ module cos(
       if(!rst_n)
       begin
         valid <= 1'b0;
-        tan_2_add_1_reg <= 32'h0000_0000;
-        deno_reg <= 32'h0000_0000;
+        xita_reg<=0;
+        tan_2_add_1_reg<=0;
+        deno_reg<=0;
+        valid_tan_prev<=0;
+        valid_sqrt_prev<=0;
+        valid_qdiv_prev<=0;
         cos <= 32'h0000_0000;
       end
       else

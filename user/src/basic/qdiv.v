@@ -15,7 +15,10 @@ module qdiv(
     parameter WIDTH = 31;
     parameter  FBITS = 16;
 
-  integer i=0;
+    wire [WIDTH-1:0] dividend_unsigned;
+    wire [WIDTH-1:0] divisor_unsigned;
+
+    integer i=0;
 
     reg [WIDTH-1:0] dividend_reg;//被除数寄存器(不带符号)
     reg [WIDTH-1:0] divisor_reg;//除数寄存器(不带符号)
@@ -25,18 +28,21 @@ module qdiv(
     reg [WIDTH:0] acc_next;//单次被除数下一个
     reg [WIDTH-1:0] quo_next;//实际使用中移位的被除数下一个
 
-  always @(*) 
-  begin
-    if (acc >= {1'b0, divisor_reg}) 
+    assign dividend_unsigned=dividend[WIDTH-1:0];
+    assign divisor_unsigned=divisor[WIDTH-1:0];
+
+    always @(*) 
     begin
-      acc_next = acc - divisor_reg;
-      {acc_next, quo_next} = {acc_next[WIDTH-1:0], quo, 1'b1};
-    end 
-    else 
-    begin
-      {acc_next, quo_next} = {acc, quo} << 1;
+      if (acc >= {1'b0, divisor_reg}) 
+      begin
+        acc_next = acc - divisor_reg;
+        {acc_next, quo_next} = {acc_next[WIDTH-1:0], quo, 1'b1};
+      end 
+      else 
+      begin
+        {acc_next, quo_next} = {acc, quo} << 1;
+      end
     end
-  end
 
     always @(negedge clk or negedge rst_n) 
     begin
@@ -49,6 +55,10 @@ module qdiv(
             warn <= 0;
             acc <= 0;
             quo <= 0;
+            busy <= 0;
+
+            acc_next <= 0;
+            quo_next <= 0;
         end
         else if(divisor==0)
         begin
@@ -59,13 +69,13 @@ module qdiv(
         end
         else
         begin
-            dividend_reg <= dividend;
-            divisor_reg <= divisor;
-            if(dividend!=dividend_reg||divisor!=divisor_reg)//输入变化，重新计算
+            dividend_reg <= dividend_unsigned;
+            divisor_reg <= divisor_unsigned;
+            if(dividend_unsigned!=dividend_reg||divisor_unsigned!=divisor_reg)//输入变化，重新计算
             begin
                 i <= 0;
                 valid <= 0;
-                {acc, quo} <= {{WIDTH{1'b0}}, dividend, 1'b0};
+                {acc, quo} <= {{WIDTH{1'b0}}, dividend_unsigned, 1'b0};
                 busy <= 1'b1;
             end
             else
@@ -73,8 +83,11 @@ module qdiv(
                 if(i==WIDTH+FBITS-1)
                 begin
                     valid<=1;
-                    quotient<=quo_next[WIDTH-1:0];
                     busy <= 1'b0;
+                    if(dividend[WIDTH]==divisor[WIDTH])
+                      quotient<={1'b0,quo_next[WIDTH-1:0]};
+                    else
+                      quotient<={1'b1,quo_next[WIDTH-1:0]};
                 end
                 else
                 begin

@@ -53,6 +53,7 @@ module sqrt(
             sqrted <= 0;
             i <= 0;
             valid <= 0;
+            iter_reg <= 0;
         end
         else
         begin
