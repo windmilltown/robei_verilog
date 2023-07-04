@@ -43,7 +43,7 @@ module tan(
         .xita  ( xita_c)
     );
 
-    always @(negedge clk or negedge rst_n) 
+    always @(posedge clk or negedge rst_n) 
     begin
         if(!rst_n)
         begin
@@ -54,6 +54,7 @@ module tan(
             i<=0;
             xita_reg<=xita;
             tan<=0;
+            cnt<=0;
         end
         else
         begin

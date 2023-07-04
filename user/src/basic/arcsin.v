@@ -74,7 +74,7 @@ module arcsin(
         .xita(xita_sharp)
     );
 
-    always @(negedge clk or negedge rst_n)
+    always @(posedge clk or negedge rst_n)
     begin
         if(!rst_n)
         begin

@@ -45,7 +45,7 @@ module sqrt(
         .sum (sum )
     );
 
-    always @(negedge clk or negedge rst_n) 
+    always @(posedge clk or negedge rst_n) 
     begin
         if(rst_n==0)
         begin

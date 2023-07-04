@@ -10,7 +10,7 @@ module xita_tan_lut(
     output reg [31:0] xita
 );
     
-    always @(negedge clk) 
+    always @(posedge clk) 
     begin
         case(i)
         0: begin
