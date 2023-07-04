@@ -13,18 +13,18 @@ module uart_test_data(
 
     always @(posedge clk or negedge rst_n) begin
         if(!rst_n) begin
-            cnt <= 8'd0;
+            cnt <= 10'd0;
             wrsig <= 1'b0;
         end
         else begin
             if(cnt == 1016) begin
                 dataout <= dataout + 8'd1; //每次数据加“1”
                 wrsig <= 1'b1; //产生发送命令
-                cnt <= 8'd0;
+                cnt <= 10'd0;
             end
             else begin
                 wrsig <= 1'b0;
-                cnt <= cnt + 8'd1;
+                cnt <= cnt + 10'd1;
             end
         end
     end
