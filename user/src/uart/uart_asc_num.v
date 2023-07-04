@@ -80,7 +80,6 @@ module uart_asc_num(
 
     always @(posedge clk or negedge rst_n) begin
         if(!rst_n) begin
-            start_prev <= start;
             xdataout <= 32'd0;
             ydataout <= 32'd0;
             zdataout <= 32'd0;
@@ -88,7 +87,6 @@ module uart_asc_num(
             cnt <= 5'd0;
         end
         else if(clr | dataerror | frameerror) begin
-            start_prev <= start;
             xdataout <= 32'd0;
             ydataout <= 32'd0;
             zdataout <= 32'd0;
