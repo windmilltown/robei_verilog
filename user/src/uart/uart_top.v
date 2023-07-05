@@ -77,16 +77,16 @@ module uart_top(
             y <= 32'd0;
             z <= 32'd0;
             cnt <= 14'd0;
-            datain <= 8'd0;
-            wrsig <= 1'b0;
+            //datain <= 8'd0;
+            //wrsig <= 1'b0;
         end
         else if(clr) begin
             x <= 32'd0;
             y <= 32'd0;
             z <= 32'd0;
             cnt <= 14'd0;
-            datain <= 8'd0;
-            wrsig <= 1'b0;
+            //datain <= 8'd0;
+            //wrsig <= 1'b0;
         end
         else if(valid) begin
             x <= x_wire;
