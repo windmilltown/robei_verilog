@@ -1,0 +1,43 @@
+$date
+	Wed Jul 05 21:06:01 2023
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1ps
+$end
+$scope module rgb_yuv_tb $end
+$var wire 8 ! y_out [7:0] $end
+$var reg 16 " rgb_in [15:0] $end
+$scope module rgb_yuv_dut $end
+$var wire 16 # rgb_in [15:0] $end
+$var wire 8 $ y_out [7:0] $end
+$var wire 16 % sum [15:0] $end
+$var wire 16 & R_p [15:0] $end
+$var wire 16 ' R [15:0] $end
+$var wire 16 ( G_p [15:0] $end
+$var wire 16 ) G [15:0] $end
+$var wire 16 * B_p [15:0] $end
+$var wire 16 + B [15:0] $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+$comment Show the parameter values. $end
+$dumpall
+$end
+#0
+$dumpvars
+b10000 +
+b110010000 *
+b110000 )
+b1100000110000 (
+b10000 '
+b10000100000 &
+b1110111100000 %
+b101101 $
+b1000011000010000 #
+b1000011000010000 "
+b101101 !
+$end
+#100000

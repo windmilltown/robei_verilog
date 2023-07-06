@@ -49,7 +49,7 @@ begin
     else
     begin
         count<=count+1;
-        //if(count>=60000)//浠呯敤浜庝豢鐪
+        //if(count>=60000)//仅仿真
         if(count>=600_000_000)
             count<=0;
         if(count==0)
@@ -59,7 +59,7 @@ begin
             set_xita1=0;
             set_xita2=0;
         end
-        //if(count==15000)//浠呯敤浜庝豢鐪
+        //if(count==15000)//仅仿真
         if(count==150_000_000)
         begin
             en1=1;
@@ -67,7 +67,7 @@ begin
             x=1276000;
             y=0;
         end
-        //if(count==30000)//浠呯敤浜庝豢鐪
+        //if(count==30000)//仅仿真
         if(count==300_000_000)
         begin
             en1=0;
@@ -75,7 +75,7 @@ begin
             set_xita1=0;
             set_xita2=0;
         end
-        //if(count==45000)//浠呯敤浜庝豢鐪
+        //if(count==45000)//仅仿真
         if(count==450_000_000)
         begin
             en1=1;
