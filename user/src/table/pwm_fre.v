@@ -1,74 +1,79 @@
-//pwm娉㈡ā鍧
-//杈撳叆锛氭椂閽焎lk 50MHz锛岄渶瑕佺殑楂樼數骞虫椂闀縡re_need[19:0]锛0_000浠ｈ〃1ms锛夛紙涓婇檺1_000_000鍗0ms锛夛紝
-// 聽 聽 聽fre_out鍔犱竴鐨勯棿闅旀椂閽熸部娆℃暟fre_gap[9:0]锛000浠ｈ〃杞80搴︾敤2绉掞級
-//杈撳嚭锛氶€愭笎鍙樺寲鍒伴渶姹傜殑楂樼數骞虫椂闀跨殑pwm娉wm_out
-//鍔熻兘锛氭牴鎹粰瀹氱殑fre_need杈撳嚭閫愭笎鍙樺寲鍒伴渶姹傚€肩殑pwm娉
-
+//滑台顶层
 //`include "set_fre.v"
 //`include "push_pwm_fre.v"
 
 module pwm_fre(
-    input clk,//杈撳叆鏃堕挓50MHz
-    input en,
-	 input direction,
-    //input [19:0] fre_need,
-    //input [19:0] fre_gap,
-    output pwm_out_fre,
-	 output dir
-  );
- // wire [19:0] fre;
-  wire pwm_tmp;
-//parameter [19:0] fre_gap=500_000;
- // parameter [19:0] fre_gap=100;
+  input clk,//杈撳叆鏃堕挓50MHz
+  input start,
+  input en,
+  input back,
+  input [31:0]dest,
+  //input [19:0] fre_need,
+  //input [19: 0] fre_gap,
+  output  reg pwm_out_fre,
+  output reg dir
+);
+reg biao=1'b1;
+wire pwm_tmp;
+reg [31:0]cha=32'h00000000;
+reg backn=1'b1;
+reg [31:0] locat=32'h00000000;
+push_pwm_fre p(
+               .clk(clk),
+               //.fre(fre),
+               .pwm_wave_fre(pwm_tmp)
+             );
+
+//  assign fre_need = fre_need_reg;
+
+
+always @(posedge clk) begin
+ if(!start)begin
+  biao<=0;
+  backn<=1;
   
-reg [31:0] count=0;
-  //reg [19:0] fre_need_reg=0;
- // wire[19:0] fre_need;
+  if (locat>dest) begin
+    cha<=((locat-dest)<<7)*3;
 
+    dir<=1;
+  end
+  else begin 
+    cha<=((dest-locat)<<7)*3;
+    dir<=0;
+  end
+end
+  
+    if(!back)begin
+      backn<=0;
+      biao<=1;
+    end
 
- // set_fre my_set_fre(
-    //        .clk(clk),
-     //       .fre_need(fre_need),
-     //       .fre_gap(fre_gap),
-      //      .fre_out(fre)
-      //    );
+    if(backn==0&&biao==1&&en)begin
+      dir<=1;
+      pwm_out_fre = pwm_tmp&en;
+    end else if(en==0) begin
+      backn<=1;
+      locat<=32'h00000000;
+      
+    end
+    
+    if (biao==0&&cha<32'h80000000&&backn==1) begin
+        cha<=cha-32'h00000001;
+        pwm_out_fre = pwm_tmp;
+    end else if(biao==0&&cha>=32'h80000000) begin
+       biao<=1; 
+       locat<=dest;
+    end
+end
 
-  push_pwm_fre push_pwm_fre(
-             .clk(clk),
-             .fre(20'd6800),
-				 //.fre(fre),
-             .pwm_wave_fre(pwm_tmp)
-           );
-
-         //  assign fre_need = fre_need_reg;
-	assign dir = direction;
-	assign pwm_out_fre = pwm_tmp & en;
-
-			
-		
-		
-		
-		
-
-              /* begin
-
-                   count<=count+1;
-                   if(count==0)
-                   begin
-                    fre_need_reg<=1600;
-             
-            
-                   end
-                   else if(count==199_999_999)
-                   begin
-                    fre_need_reg<=0;
-                
-                   end
-                   
-               end*/
-           
-         
 
 endmodule
+
+
+
+
+
+
+
 
 
