@@ -74,7 +74,7 @@ module arm_model(
       .pwm_catch  ( pwm_catch)
     );  
 
-    always @(negedge clk or negedge rst_n) 
+    always @(posedge clk or negedge rst_n) 
     begin
         if(rst_n==0)
         begin

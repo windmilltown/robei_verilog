@@ -35,7 +35,7 @@ arm_model_dut (
   .catch_pwm  ( catch_pwm)
 );
 
-always @(negedge clk or negedge rst_n) 
+always @(posedge clk or negedge rst_n) 
 begin
     if(!rst_n)
     begin
@@ -66,6 +66,7 @@ begin
             en2=0;
             x=1276000;
             y=0;
+            catch=1'b1;
         end
         //if(count==30000)//仅仿真
         if(count==300_000_000)
@@ -74,6 +75,7 @@ begin
             en2=1;
             set_xita1=0;
             set_xita2=0;
+            catch=1'b0;
         end
         //if(count==45000)//仅仿真
         if(count==450_000_000)

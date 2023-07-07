@@ -16,7 +16,7 @@ module set_duty(
 
     reg [11:0] count=0;
 
-    always @(negedge clk) 
+    always @(posedge clk) 
     begin
         if(duty_out<duty_need)
         begin

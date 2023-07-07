@@ -10,7 +10,7 @@ module push_pwm(
 
     reg [19:0] count=0;
 
-    always @(negedge clk) 
+    always @(posedge clk) 
     begin
         count<=count+1;
         //if(count==19)//仅用于仿真

@@ -6,7 +6,7 @@ module ov7725_top
     (
         input wire sys_clk , //系统时钟
         input wire sys_rst_n , //复位信号
-        input wire sys_init_done , //系统初始化完成(SDRAM + 摄像头)
+        input wire sys_init_done , //系统初始化完成
 
         input wire ov7725_pclk , //摄像头像素时钟
         input wire ov7725_href , //摄像头行同步信号
