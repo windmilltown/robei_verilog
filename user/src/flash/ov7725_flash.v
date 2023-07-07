@@ -73,6 +73,7 @@ module ov7725_flash(
             time_delay<=13'b0;
             cnt_se_erase<=8'b0;
             cnt_page<=11'b0;
+            se_done<=1'b0;
         end
         else begin
             case(state)
@@ -108,7 +109,6 @@ module ov7725_flash(
                         cmd<=8'h00;
                         addr<=24'b0;
                         time_delay<=13'b0;
-                        cnt_page<=11'b0;
                     end
                     else begin
                         state<=RN_SEND;
@@ -116,7 +116,6 @@ module ov7725_flash(
                         cmd<=8'h06;
                         addr<=24'b0;
                         time_delay<=13'b0;
-                        cnt_page<=11'b0;
                     end
                 end
                 SE_ERASE: begin
