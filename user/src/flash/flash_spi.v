@@ -7,7 +7,7 @@ module flash_spi(
         output reg flash_cs, //spi片选信号
         output reg flash_datain, //spi数据输给flash
         input flash_dataout, //spi数据输出flash
-        input clock25M, //25M时钟
+        input clock24M, //24M时钟
         input flash_rstn, //复位信号
         input [3:0] cmd_type, //命令类型
         output reg Done_Sig, //发送完成信号
@@ -42,10 +42,10 @@ module flash_spi(
 
     //assign define//
     assign myvalid_o=myvalid;
-    assign flash_clk=spi_clk_en?clock25M:0;
+    assign flash_clk=spi_clk_en?clock24M:0;
 
     //发送读 flash 命令//
-    always @(negedge clock25M) begin
+    always @(negedge clock24M) begin
         if(!flash_rstn) begin
             flash_cs<=1'b1;
             spi_state<=idle;
@@ -160,7 +160,7 @@ module flash_spi(
         end
     end
     //接收 flash 数据
-    always @(posedge clock25M) begin
+    always @(posedge clock24M) begin
         if(!flash_rstn) begin
             read_cnt<=0;
             cntb<=0;
