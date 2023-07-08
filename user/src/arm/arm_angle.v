@@ -9,6 +9,7 @@
 
 module arm_angle(
     input clk,
+    input rst_n,
     input [31:0] xita1,
     input [31:0] xita2,
     input catch,
@@ -34,6 +35,7 @@ module arm_angle(
     pwm 
     pwm_dut (
       .clk (clk ),
+      .rst_n(rst_n),
       .duty_need (duty1 ),
       .duty_gap (duty_gap1 ),
       .pwm_out  ( pwm1)
@@ -41,6 +43,7 @@ module arm_angle(
     pwm
     pwm_dut1 (
       .clk (clk ),
+      .rst_n(rst_n),
       .duty_need (duty2 ),
       .duty_gap (duty_gap2 ),
       .pwm_out  ( pwm2)
@@ -51,6 +54,7 @@ module arm_angle(
     pwm
     pwm_dut2 (
       .clk (clk ),
+      .rst_n(rst_n),
       .duty_need (catch_duty ),
       .duty_gap (duty_gap2 ),
       .pwm_out  ( pwm_catch)

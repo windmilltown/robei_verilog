@@ -4,11 +4,12 @@
 //输出：duty_out[19:0] 随时间逐渐变化到need值的高电平持续时间
 //功能：根据给定的duty_need输出逐渐变化到需求值的duty_out
 module set_duty(
-    input clk,//输入时钟50MHz
-    input [19:0] duty_need,
-    input [11:0] duty_gap,
-    output reg [19:0] duty_out
-);
+        input clk,//输入时钟50MHz
+        input rst_n,//复位信号，低电平有效
+        input [19:0] duty_need,
+        input [11:0] duty_gap,
+        output reg [19:0] duty_out
+    );
 
     initial begin
         duty_out=0;
@@ -16,25 +17,30 @@ module set_duty(
 
     reg [11:0] count=0;
 
-    always @(posedge clk) 
-    begin
-        if(duty_out<duty_need)
-        begin
-            count<=count+1;
-            if(count==duty_gap-1)
-            begin
-                count<=0;
-                duty_out<=duty_out+1;
-            end 
+    always @(posedge clk or negedge rst_n) begin
+        if(!rst_n) begin
+            duty_out<=0;
+            count<=0;
         end
-        else if (duty_out>duty_need) 
-        begin
-            count<=count+1;
-            if(count==duty_gap-1)
-            begin
-                count<=0;
-                duty_out<=duty_out-1;
-            end 
-        end   
+        else begin
+            if(duty_out<duty_need) begin
+                if(count==duty_gap-1) begin
+                    count<=0;
+                    duty_out<=duty_out+1;
+                end
+                else begin
+                    count<=count+1;
+                end
+            end
+            else if (duty_out>duty_need) begin
+                if(count==duty_gap-1) begin
+                    count<=0;
+                    duty_out<=duty_out-1;
+                end
+                else begin
+                    count<=count+1;
+                end
+            end
+        end
     end
 endmodule

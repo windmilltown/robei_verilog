@@ -66,12 +66,13 @@ module arm_model(
     arm_angle 
     arm_angle_dut (
       .clk (clk ),
+      .rst_n (rst_n ),
       .xita1 (xita1 ),
       .xita2 (xita2 ),
       .catch (catch ),
       .pwm1 (pwm1 ),
       .pwm2 (pwm2 ),
-      .pwm_catch  ( pwm_catch)
+      .pwm_catch  ( catch_pwm)
     );  
 
     always @(posedge clk or negedge rst_n) 
