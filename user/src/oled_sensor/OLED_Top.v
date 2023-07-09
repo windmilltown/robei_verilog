@@ -131,7 +131,8 @@ OLED_Init OLED_InitHP(
 );
 
 
-OLED_Refresh(
+OLED_Refresh OLED_RefreshHP
+(
 	.sys_clk				(sys_clk),
 	.rst_n				(rst_n),
 	
