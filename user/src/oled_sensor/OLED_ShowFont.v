@@ -1,10 +1,3 @@
-
-
-
-
-
-
-
 module OLED_ShowFont(
 
 	input				sys_clk,

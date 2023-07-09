@@ -1,8 +1,4 @@
 
-
-
-
-
 module OLED_ShowData(
 	
 	input				sys_clk,

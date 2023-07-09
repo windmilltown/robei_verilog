@@ -3,11 +3,7 @@
 
 
 
-/*
-    IIC 主通信 : 8bit的数据 + 8bit的寄存器地址 + 8bit的从机地址
-    作者：  FPGA之旅
-    欢迎关注微信公众号 FPGA之旅
-*/
+/*IIC 主通信 : 8bit的数据 + 8bit的寄存器地址 + 8bit的从机地址*/
 
 module  IIC_Driver(
     input       sys_clk,           /*系统时钟*/

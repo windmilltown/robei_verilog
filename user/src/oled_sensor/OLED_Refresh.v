@@ -1,7 +1,3 @@
-
-
-
-
 //刷新模块，将oled屏幕全部变为黑色
 module OLED_Refresh(
 	input					sys_clk,

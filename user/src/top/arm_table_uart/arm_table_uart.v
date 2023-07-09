@@ -19,7 +19,7 @@ module arm_table_uart(
         //OLED顶层接口
         inout dht11,
         output OLED_SCL,
-	    output OLED_SDA
+        output OLED_SDA
     );
 
     //parameter define
@@ -54,56 +54,56 @@ module arm_table_uart(
     reg [31:0] cnt;
 
     //module instance
-    uart_top 
-    uart_top_dut (
-      .clk50 (clk ),
-      .rst_n (rst_n ),
-      .rx (rx ),
-      .clr (clr ),
-      .tx (tx ),
-      .x (x ),
-      .y (y ),
-      .z (z ),
-      .valid  ( uart_valid)
-    );
-  
-    arm_model 
-    arm_model_dut (
-      .clk (clk ),
-      .x (x_reg ),
-      .y (y_reg ),
-      .en1 (en1 ),
-      .en2 (en2 ),
-      .rst_n (rst_n ),
-      .set_xita1 (set_xita1 ),
-      .set_xita2 (set_xita2 ),
-      .catch (catch ),
-      .pwm1 (pwm1 ),
-      .pwm2 (pwm2 ),
-      .catch_pwm  ( catch_pwm)
-    );
+    uart_top
+        uart_top_dut (
+            .clk50 (clk ),
+            .rst_n (rst_n ),
+            .rx (rx ),
+            .clr (clr ),
+            .tx (tx ),
+            .x (x ),
+            .y (y ),
+            .z (z ),
+            .valid  ( uart_valid)
+        );
 
-    pwm_fre 
-    pwm_fre_dut (
-      .clk (clk ),
-      .start (table_start ),
-      .en (flag ),
-      .back (table_back ),
-      .dest (table_dest ),
-      .pwm_out_fre (pwm_table ),
-      .dir  ( dir_table)
-    );  
-    
-	 OLED_sensor
-	 OLED_sensor_dut(	
-	.sys_clk(clk),
-	.rst_n(rst_n),
-	
-	.dht11(dht11),
-	
-	.OLED_SCL(OLED_SCL),
-	.OLED_SDA(OLED_SDA)
-	);
+    arm_model
+        arm_model_dut (
+            .clk (clk ),
+            .x (x_reg ),
+            .y (y_reg ),
+            .en1 (en1 ),
+            .en2 (en2 ),
+            .rst_n (rst_n ),
+            .set_xita1 (set_xita1 ),
+            .set_xita2 (set_xita2 ),
+            .catch (catch ),
+            .pwm1 (pwm1 ),
+            .pwm2 (pwm2 ),
+            .catch_pwm  ( catch_pwm)
+        );
+
+    pwm_fre
+        pwm_fre_dut (
+            .clk (clk ),
+            .start (table_start ),
+            .en (flag ),
+            .back (table_back ),
+            .dest (table_dest ),
+            .pwm_out_fre (pwm_table ),
+            .dir  ( dir_table)
+        );
+
+    OLED_sensor
+        OLED_sensor_dut(
+            .sys_clk(clk),
+            .rst_n(rst_n),
+
+            .dht11(dht11),
+
+            .OLED_SCL(OLED_SCL),
+            .OLED_SDA(OLED_SDA)
+        );
 
     always @(posedge clk or negedge rst_n) begin
         if(!rst_n) begin
@@ -124,7 +124,7 @@ module arm_table_uart(
         end
         else begin
             case(state)
-                IDLE:begin
+                IDLE: begin
                     if(uart_valid) begin
                         state<=CATCHING;
                         cnt<=32'd0;
@@ -207,7 +207,7 @@ module arm_table_uart(
                         clr=1'b0;
                         cnt<=32'd0;
                         state<=IDLE;
-                    end     
+                    end
                 end
             endcase
         end

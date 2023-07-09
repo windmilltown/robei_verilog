@@ -1,8 +1,3 @@
-
-
-
-
-
 /*数字数据0-9*/
 module	OLED_NumData(
 

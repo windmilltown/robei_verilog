@@ -1,9 +1,3 @@
-
-
-
-
-
-
 module OLED_sensor(
 	
 	input			sys_clk,

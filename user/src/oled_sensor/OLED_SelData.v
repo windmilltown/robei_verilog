@@ -1,9 +1,3 @@
-
-
-
-
-
-
 module OLED_SelData(
 	
 	input				sys_clk,
