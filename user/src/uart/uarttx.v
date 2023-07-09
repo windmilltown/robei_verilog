@@ -1,6 +1,6 @@
 //uart发送模块uarttx
-//输入：clk50，rst_n，datain，wrsig
-//输出：idle，tx
+//输入：clk,rst_n,datain,wrsig
+//输出：idle,tx
 //功能：16个clock发送一个 bit,一个起始位,8 个数据位,一个校验位,一个停止位
 module uarttx(
         input clk, //UART 时钟

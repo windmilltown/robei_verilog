@@ -17,7 +17,7 @@ module uart_asc_num(
     );
 
     reg start_prev;
-    reg [4:0] cnt;
+    reg [4:0] cnt=5'd0;
     reg startrs;//strat上升
     reg [3:0] num_16;//单个ascii码对应的4位数字
 
@@ -95,107 +95,128 @@ module uart_asc_num(
         end
         else begin
             if(startrs & !dataerror & !frameerror) begin
-                cnt <= cnt+5'b1;
-                if(cnt == 5'd23)
-                    cnt <= 5'b0;
                 case (cnt)
                     5'd0: begin
                         xdataout[31:28] <= num_16;
                         valid <= 1'b0;
+                        cnt <= cnt+5'b1;
                     end
                     5'd1: begin
                         xdataout[27:24] <= num_16;
                         valid <= 1'b0;
+                        cnt <= cnt+5'b1;
                     end
                     5'd2: begin
                         xdataout[23:20] <= num_16;
                         valid <= 1'b0;
+                        cnt <= cnt+5'b1;
                     end
                     5'd3: begin
                         xdataout[19:16] <= num_16;
                         valid <= 1'b0;
+                        cnt <= cnt+5'b1;
                     end
                     5'd4: begin
                         xdataout[15:12] <= num_16;
                         valid <= 1'b0;
+                        cnt <= cnt+5'b1;
                     end
                     5'd5: begin
                         xdataout[11:8] <= num_16;
                         valid <= 1'b0;
+                        cnt <= cnt+5'b1;
                     end
                     5'd6: begin
                         xdataout[7:4] <= num_16;
                         valid <= 1'b0;
+                        cnt <= cnt+5'b1;
                     end
                     5'd7: begin
                         xdataout[3:0] <= num_16;
                         valid <= 1'b0;
+                        cnt <= cnt+5'b1;
                     end
 
                     5'd8: begin
                         ydataout[31:28] <= num_16;
                         valid <= 1'b0;
+                        cnt <= cnt+5'b1;
                     end
                     5'd9: begin
                         ydataout[27:24] <= num_16;
                         valid <= 1'b0;
+                        cnt <= cnt+5'b1;
                     end
                     5'd10: begin
                         ydataout[23:20] <= num_16;
                         valid <= 1'b0;
+                        cnt <= cnt+5'b1;
                     end
                     5'd11: begin
                         ydataout[19:16] <= num_16;
                         valid <= 1'b0;
+                        cnt <= cnt+5'b1;
                     end
                     5'd12: begin
                         ydataout[15:12] <= num_16;
                         valid <= 1'b0;
+                        cnt <= cnt+5'b1;
                     end
                     5'd13: begin
                         ydataout[11:8] <= num_16;
                         valid <= 1'b0;
+                        cnt <= cnt+5'b1;
                     end
                     5'd14: begin
                         ydataout[7:4] <= num_16;
                         valid <= 1'b0;
+                        cnt <= cnt+5'b1;
                     end
                     5'd15: begin
                         ydataout[3:0] <= num_16;
                         valid <= 1'b0;
+                        cnt <= cnt+5'b1;
                     end
 
                     5'd16: begin
                         zdataout[31:28] <= num_16;
                         valid <= 1'b0;
+                        cnt <= cnt+5'b1;
                     end
                     5'd17: begin
                         zdataout[27:24] <= num_16;
                         valid <= 1'b0;
+                        cnt <= cnt+5'b1;
                     end
                     5'd18: begin
                         zdataout[23:20] <= num_16;
                         valid <= 1'b0;
+                        cnt <= cnt+5'b1;
                     end
                     5'd19: begin
                         zdataout[19:16] <= num_16;
                         valid <= 1'b0;
+                        cnt <= cnt+5'b1;
                     end
                     5'd20: begin
                         zdataout[15:12] <= num_16;
                         valid <= 1'b0;
+                        cnt <= cnt+5'b1;
                     end
                     5'd21: begin
                         zdataout[11:8] <= num_16;
                         valid <= 1'b0;
+                        cnt <= cnt+5'b1;
                     end
                     5'd22: begin
                         zdataout[7:4] <= num_16;
                         valid <= 1'b0;
+                        cnt <= cnt+5'b1;
                     end
                     5'd23: begin
                         zdataout[3:0] <= num_16;
                         valid <= 1'b1;
+                        cnt <= cnt+5'b1;
                     end
                 endcase
             end

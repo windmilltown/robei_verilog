@@ -107,30 +107,31 @@ module arm_table_uart(
 
     always @(posedge clk or negedge rst_n) begin
         if(!rst_n) begin
-            clr=1'b0;
-            x_reg=1'b0;
-            y_reg=L1+L2;
-            z_reg=32'd0;
-            en1=1'b0;
-            en2=1'b0;
-            set_xita1=32'd0;
-            set_xita2=32'd0;
-            catch=1'b0;
-            table_start=1'b1;
-            table_back=1'b1;
-            table_dest=32'd0;
-            state=IDLE;
-            cnt=32'd0;
+            clr<=1'b0;
+            x_reg<=1'b0;
+            y_reg<=L1+L2;
+            z_reg<=32'd0;
+            en1<=1'b0;
+            en2<=1'b0;
+            set_xita1<=32'd0;
+            set_xita2<=32'd0;
+            catch<=1'b0;
+            table_start<=1'b1;
+            table_back<=1'b1;
+            table_dest<=32'd0;
+            state<=IDLE;
+            cnt<=32'd0;
         end
         else begin
             case(state)
                 IDLE:begin
                     if(uart_valid) begin
                         state<=CATCHING;
+                        cnt<=32'd0;
                     end
                     else begin
                         clr<=1'b0;
-                        x_reg<=1'b0;
+                        x_reg<=32'b0;
                         y_reg<=L1+L2;
                         z_reg<=32'd0;
                         en1<=1'b0;
@@ -145,109 +146,68 @@ module arm_table_uart(
                         cnt<=32'd0;
                     end
                 end
-                CATCHING:begin
-                    //cnt<=cnt+1;
-                    if(cnt==32'd100) begin
+                CATCHING: begin
+                    cnt<=cnt+1;
+                    if(cnt==32'd0) begin
                         table_back<=1'b0;
-                        cnt<=cnt+32'd1;
                     end
-                    else if(cnt==32'd120) begin
+                    else if(cnt==32'd1) begin
                         table_back<=1'b1;
+                    end
+                    else if(cnt==32'd500_000_000) begin //回到了起始位置
                         table_dest<=z;
-                        cnt<=cnt+32'd1;
-                    end
-                    else if(cnt==32'd500_000_000) begin //回到了原点,启动
                         table_start<=1'b0;
-                        cnt<=cnt+32'd1;
                     end
-                    else if(cnt==32'd500_000_020) begin
+                    else if(cnt==32'd500_000_001) begin
                         table_start<=1'b1;
-                        cnt<=cnt+32'd1;
                     end
-                    else if(cnt==32'd1_000_000_000) begin //到了指定位置
-                        catch<=1'b0;
-                        cnt<=cnt+32'd1;
+                    else if(cnt==32'd1_000_000_000) begin
+                        catch<=1'b1;
                     end
-                    else if(cnt==32'd1_100_000_000) begin //放下手臂
+                    else if(cnt==32'd1_050_000_000) begin
                         x_reg<=x;
                         y_reg<=y;
                         en1<=1'b1;
                         en2<=1'b0;
-                        cnt<=cnt+32'd1;
                     end
-                    else if(cnt==32'd1_500_000_000) begin //夹取
-                        catch<=1'b1;
-                        cnt<=cnt+32'd1;
+                    else if(cnt==32'd1_200_000_000) begin
+                        catch<=1'b0;
                     end
-                    else if(cnt==32'd1_700_000_000) begin //抬起手臂
-                        x_reg<=0;
-                        y_reg<=L1+L2;
-                        en1<=1'b0;
-                        en2<=1'b1;
-                        set_xita1<=32'd0;
-                        set_xita2<=32'd0;
-                        cnt<=cnt+32'd1;
+                    else if(cnt==32'd1_300_000_000) begin
+                        en1<=1'b1;
+                        en2<=1'b0;
+                        x_reg<=32'd289057;
+                        y_reg<=32'd1639325;
                     end
-                    else if(cnt>=32'd2_000_000_000) begin
-                        state<=GOBACK;
-                        cnt<=32'd0;
-                    end
-                    else begin
-                        cnt<=cnt+32'd1;
-                    end
-                end
-                GOBACK:begin
-                    //cnt<=cnt+32'd1;
-                    if(cnt==32'd20) begin
+                    else if(cnt==32'd1_400_000_000) begin
                         table_back<=1'b0;
-                        cnt<=cnt+32'd1;
                     end
-                    else if(cnt==32'd30) begin
+                    else if(cnt==32'd1_400_000_001) begin
                         table_back<=1'b1;
-                        cnt<=cnt+32'd1;
                     end
-                    else if(cnt>=32'd500_000_000) begin //回到了起始位置
-                        state<=SET;
-                        cnt<=32'd0;
-                    end
-                    else begin
-                        cnt<=cnt+32'd1;
-                    end
-                end
-                SET:begin
-                    if(cnt==32'd20) begin
+                    else if(cnt==32'd1_800_000_000) begin //回到了起始位置
                         x_reg<=x;
                         y_reg<=y;
                         en1<=1'b1;
                         en2<=1'b0;
-                        cnt<=cnt+32'd1;
                     end
-                    else if(cnt==32'd150_000_000) begin //手臂到了放下位置
-                        catch<=1'b0;
-                        cnt<=cnt+32'd1;
-                    end
-                    else if(cnt==32'd250_000_000) begin //放完了回位
-                        x_reg<=0;
-                        y_reg<=L1+L2;
-                        en1<=1'b0;
-                        en2<=1'b1;
-                        set_xita1<=32'd0;
-                        set_xita2<=32'd0;
-                        cnt<=cnt+32'd1;
-                    end
-                    else if(cnt==32'd400_000_000) begin
-                        clr<=1'b1;
-                        cnt<=cnt+32'd1;
-                    end
-                    else if(cnt>=32'd400_000_020) begin
-                        clr<=1'b0;
+                    else if(cnt==32'd1_900_000_000) begin
                         catch<=1'b1;
-                        state<=IDLE;
+                    end
+                    else if(cnt==32'd2_025_000_000) begin
+                        en1<=1'b1;
+                        en2<=1'b0;
+                        x_reg<=32'd289057;
+                        y_reg<=32'd1639325;
+                    end
+                    else if(cnt==2_050_000_000) begin
+                        clr=1'b1;
+                    end
+                    else if(cnt==2_090_000_000) begin
+                        clr=1'b0;
                         cnt<=32'd0;
-                    end
-                    else begin
-                        cnt<=cnt+32'd1;
-                    end
+                        state<=IDLE;
+                    end     
                 end
             endcase
         end
