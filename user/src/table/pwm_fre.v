@@ -6,7 +6,7 @@ module pwm_fre(
   input clk, //系统时钟50MHz
   input start, //开始标志,低电平触发,保持一个时钟周期
   input en, //非停止信号,低电平时停止移动，需要接到滑台限位器上,不影响start移动滑台
-  input back, //回到滑台最左侧限位处
+  input back, //回到滑台最左侧限位处,低电平触发,保持一个时钟周期
   input [31:0] dest, //要移动到的位置,单位是cm,请勿超过32'h0013_0000
   //input [19:0] fre_need,
   //input [19: 0] fre_gap,
