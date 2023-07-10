@@ -1,7 +1,7 @@
 //根据角度控制机械臂
 //输入：舵机1角度xita1,舵机2角度xita2,夹手信号catch
 //输出：舵机1pwm波pwm1,舵机2pwm波pwm2,夹手pwm波pwm_catch
-//功能：根据输入的角度控制舵机转动到相应角度，夹手信号为1时夹手，为0时松手
+//功能：根据输入的角度控制舵机转动到相应角度，夹手信号为0时夹手，为1时松手
 /*`include "../xita_to_duty/xita_to_duty.v"
 `include "../pwm/pwm.v"
 `include "../pwm/push_pwm/push_pwm.v"

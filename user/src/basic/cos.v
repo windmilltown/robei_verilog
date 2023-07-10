@@ -8,8 +8,8 @@
 //`include "../sqrt/sqrt.v"
 //`include "../arctan/xita_tan_lut.v"
 module cos(
-    input [31:0] clk,
-    input [31:0] rst_n,
+    input clk,
+    input rst_n,
     output reg valid,
 
     input [31:0] xita,
