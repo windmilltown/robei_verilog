@@ -11,7 +11,7 @@ module ov7725_top
         input wire ov7725_pclk , //摄像头像素时钟
         input wire ov7725_href , //摄像头行同步信号
         input wire ov7725_vsync , //摄像头场同步信号
-        input wire [ 7:0] ov7725_data , //摄像头图像数据
+        input wire [7:0] ov7725_data , //摄像头图像数据
 
         output wire cfg_done , //寄存器配置完成
         output wire sccb_scl , //SCL

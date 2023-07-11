@@ -1,5 +1,5 @@
 //spi协议与flash通信模块
-//输入：flash_cmd,flash_addr,cmd_type,flash_rstn,clock25M
+//输入：flash_cmd,flash_addr,cmd_type,flash_rstn,clock24M
 //输出：flash_clk,flash_cs,flash_datain,mydata_o,myvalid_o,Done_Sig
 //功能：发送命令、地址、读写数据，读写flash数据
 module flash_spi(
@@ -156,7 +156,6 @@ module flash_spi(
                 default:
                     spi_state<=idle;
             endcase
-            ;
         end
     end
     //接收 flash 数据
