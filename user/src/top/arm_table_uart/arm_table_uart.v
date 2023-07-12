@@ -19,7 +19,10 @@ module arm_table_uart(
         //OLED顶层接口
         inout dht11,
         output OLED_SCL,
-        output OLED_SDA
+        output OLED_SDA,
+
+        //触控传感器
+        input touch_sensor
     );
 
     //parameter define
@@ -210,6 +213,11 @@ module arm_table_uart(
                     end
                 end
             endcase
+            if(touch_sensor) begin
+                clr=1'b0;
+                cnt<=32'd0;
+                state<=IDLE;
+            end
         end
     end
 endmodule
