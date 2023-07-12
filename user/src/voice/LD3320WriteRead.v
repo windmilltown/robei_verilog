@@ -11,102 +11,133 @@ output reg CSB,
 output reg WRB,
 output reg RDB,
 output reg [7:0] data_valid,
-output reg data_ready
+output reg data_ready,
+output reg done
 );
-parameter [2:0] IDLE = 3'b000,
-ADDRESS_WRITE = 3'b001,
-ADDRESS_WRITEDONE = 3'b011,
-DATA_READ = 3'b010,
-DATA_WRITE= 3'b110,
-DATA_WRITEDONE = 3'b111,
-DATA_READDONE = 3'b101;
-reg [2:0] state, next_state;
+parameter [7:0] Idle = 8'b00000001,
+PrewriteAddress = 8'b00000010,
+WriteAddress = 8'b00000100,
+AddressDone = 8'b00001000,
+PrepareData = 8'b00010000,
+WriteData = 8'b00100000,
+ReadData = 8'b01000000,
+Done = 8'b10000000;
+reg [7:0] state;
 reg [7:0] P_tmp;
 always@(posedge clk or negedge rst_n) begin
 	if(!rst_n) begin
-		state <= IDLE;
-	end 
+		state <= Idle;
+		P_tmp <= 8'b00000000;
+		A0 <= 1'b0;
+		CSB <= 1'b1;
+		WRB <= 1'b1;
+		RDB <= 1'b1;
+		data_valid <= 8'b00000000;
+		data_ready <= 1'b0;
+	end
 	else begin
-		state <= next_state;
+		case(state)
+			Idle: begin
+				state <= ena ? PrewriteAddress : Idle;
+				A0 <= 1'b0;
+				CSB <= 1'b1;
+				WRB <= 1'b1;
+				RDB <= 1'b1;
+				P_tmp <= 8'b00000000;
+				data_valid <= 8'b00000000;
+				data_ready <= 1'b0;
+				done <= 1'b0;
+			end
+			PrewriteAddress: begin
+				state <= WriteAddress;
+				A0 <= 1'b1;
+				CSB <= 1'b1;
+				WRB <= 1'b1;
+				RDB <= 1'b1;
+				P_tmp <= address;
+				data_valid <= 8'b00000000;
+				data_ready <= 1'b0;
+				done <= 1'b0;
+			end
+			WriteAddress: begin
+				state <= AddressDone;
+				A0 <= 1'b1;
+				CSB <= 1'b0;
+				WRB <= 1'b0;
+				RDB <= 1'b1;
+				P_tmp <= address;
+				data_valid <= 8'b00000000;
+				data_ready <= 1'b0;
+				done <= 1'b0;
+			end
+			AddressDone: begin
+				state <= PrepareData;
+				A0 <= 1'b1;
+				CSB <= 1'b1;
+				WRB <= 1'b1;
+				RDB <= 1'b1;
+				P_tmp <= address;
+				data_valid <= 8'b00000000;
+				data_ready <= 1'b0;
+				done <= 1'b0;
+			end
+			PrepareData: begin
+				state <= sel ? WriteData : ReadData;
+				A0 <= 1'b0;
+				CSB <= 1'b1;
+				WRB <= 1'b1;
+				RDB <= 1'b1;
+				P_tmp <= sel ? data : 8'bzzzzzzzz;
+				data_valid <= 8'b00000000;
+				data_ready <= 1'b0;
+				done <= 1'b0;
+			end
+			WriteData: begin
+				state <= Done;
+				A0 <= 1'b0;
+				CSB <= 1'b0;
+				WRB <= 1'b0;
+				RDB <= 1'b1;
+				P_tmp <= data;
+				data_valid <= 8'b00000000;
+				data_ready <= 1'b0;
+				done <= 1'b0;
+			end
+			ReadData: begin
+				state <= Done;
+				A0 <= 1'b0;
+				CSB <= 1'b0;
+				WRB <= 1'b1;
+				RDB <= 1'b0;
+				P_tmp <= 8'bzzzzzzzz;
+				data_valid <= P;
+				data_ready <= 1'b1;
+				done <= 1'b0;
+			end
+			Done: begin
+				state <= Idle;
+				A0 <= 1'b0;
+				CSB <= 1'b1;
+				WRB <= 1'b1;
+				RDB <= 1'b1;
+				P_tmp <= 8'b00000000;
+				data_valid <= data_valid;
+				data_ready <= data_ready;
+				done <= 1'b1;
+			end
+			default: begin
+				state <= ena ? PrewriteAddress : Idle;
+				A0 <= 1'b0;
+				CSB <= 1'b1;
+				WRB <= 1'b1;
+				RDB <= 1'b1;
+				P_tmp <= 8'b00000000;
+				data_valid <= 8'b00000000;
+				data_ready <= 1'b0;
+				done <= 1'b0;
+			end			
+		endcase
 	end
 end
-always@(*) begin
-	case(state) 
-		IDLE: next_state = ena ? ADDRESS_WRITE : IDLE;
-		ADDRESS_WRITE: next_state = ADDRESS_WRITEDONE;
-		ADDRESS_WRITEDONE: next_state =  sel ? DATA_WRITE : DATA_READ ;
-		DATA_READ: next_state = DATA_READDONE;
-		DATA_READDONE: next_state = IDLE;
-		DATA_WRITE: next_state = DATA_WRITEDONE;
-		DATA_WRITEDONE: next_state = IDLE;
-	endcase
-end
-always@(*) begin
-	case(state)
-		IDLE: begin
-			P_tmp[7:0] = 8'h00;
-			A0 = 1'b0;
-			CSB = 1'b1;
-			WRB = 1'b1;
-			RDB = 1'b1;
-			data_valid[7:0] = 8'h00;
-			data_ready = 1'b0;
-		end
-		ADDRESS_WRITE: begin
-			P_tmp[7:0] = address;
-			A0 = 1'b1;
-			CSB = 1'b0;
-			WRB = 1'b0;
-			RDB = 1'b1;
-			data_valid[7:0] = 8'h00;
-			data_ready = 1'b0;
-		end
-		ADDRESS_WRITEDONE: begin
-			P_tmp[7:0] = address;
-			A0 = 1'b1;
-			CSB = 1'b1;
-			WRB = 1'b1;
-			RDB = 1'b1;
-			data_valid[7:0] = 8'h00;
-			data_ready = 1'b0;
-		end
-		DATA_WRITE: begin
-			P_tmp[7:0] = data[7:0];
-			A0 = 1'b0;
-			CSB = 1'b0;
-			WRB = 1'b0;
-			RDB = 1'b1;
-			data_valid[7:0] = 8'h00;
-			data_ready = 1'b0;
-		end
-		DATA_WRITEDONE: begin
-			P_tmp[7:0] = data[7:0];
-			A0 = 1'b1;
-			CSB = 1'b1;
-			WRB = 1'b1;
-			RDB = 1'b1;
-			data_valid[7:0] = 8'h00;
-			data_ready = 1'b0;
-		end
-		DATA_READ: begin
-			P_tmp[7:0] = 8'h00;
-			A0 = 1'b0;
-			CSB = 1'b0;
-			WRB = 1'b1;
-			RDB = 1'b0;
-			data_valid[7:0] = P;
-			data_ready = 1'b1;
-		end
-		DATA_READDONE: begin
-			P_tmp[7:0] = 8'h00;
-			A0 = 1'b1;
-			CSB = 1'b1;
-			WRB = 1'b1;
-			RDB = 1'b1;
-			data_valid[7:0] = 8'h00;
-			data_ready = 1'b0;
-		end
-	endcase
-end
-assign P = (state == DATA_READ) ? 8'bzzzzzzzz : P_tmp;
+assign P = P_tmp;
 endmodule
