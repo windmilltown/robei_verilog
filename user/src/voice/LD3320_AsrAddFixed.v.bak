@@ -2,9 +2,7 @@ module LD3320_AsrAddFixed(
     input clk,
     input sys_rstn,
     input ena,//
-    input [7:0] P_in,
-    output P_sel,
-    output [7:0] P_out,
+    inout [7:0] P,
     output A0,
     output CSB,
     output WRB,
@@ -52,13 +50,12 @@ S35 = 6'd35,
 S36 = 6'd36,
 S37 = 6'd37,
 S38 = 6'd38,
-S39 = 6'd39,
-S40 = 6'd40;
+S39 = 6'd39;
 reg [3:0] cnt;
 reg [5:0] state, previous_state, next_state;
 reg LD3320_ena, counter_ena, sel;
 reg [7:0] address, data;
-reg [11:0] div_num;
+reg [7:0] div_num;
 wire data_ready;
 wire [7:0] data_valid;
 reg [7:0] data_tmp;
@@ -67,28 +64,17 @@ wire LD3320_done, counter_done;
 always@(posedge clk or negedge sys_rstn) begin
     if(!sys_rstn) begin
         state <= S0;
-		  previous_state <= S0;
-		  data_tmp <= 8'h00;
     end
     else begin
         state <= next_state;
         previous_state <= state;
-		  if(data_ready) begin
-                data_tmp <= data_valid;
-            end
-			else if(state == S3 || state == S21) begin
-					data_tmp <= 8'h00;
-			end
-			else begin
-					data_tmp <= data_tmp;
-			end
     end
 end
 always @(*) begin
     case(state) 
         S0 : next_state = ena ? S1 : S0;
         S1 : next_state = LD3320_done  ? S2  : S1;
-        S2 : next_state = judge  ? S3  : ((cnt == 4'hA) ? S40 : S1);
+        S2 : next_state = judge  ? S3  : ((cnt == 4'hA) ? S39 : S1);
         S3 : next_state = LD3320_done  ? S4  : S3;
         S4 : next_state = LD3320_done  ? S5  : S4;
         S5 : next_state = LD3320_done  ? S6  : S5;
@@ -106,7 +92,7 @@ always @(*) begin
         S17: next_state = LD3320_done  ? S18 : S17;
         S18: next_state = LD3320_done  ? S19 : S18;
         S19: next_state = LD3320_done  ? S20 : S19;
-        S20: next_state = judge  ? S21  : ((cnt == 4'hA) ? S40 : S19);
+        S20: next_state = judge  ? S21  : ((cnt == 4'hA) ? S39 : S19);
         S21: next_state = LD3320_done  ? S22 : S21;
         S22: next_state = LD3320_done  ? S23 : S22;
         S23: next_state = LD3320_done  ? S24 : S23;
@@ -124,9 +110,8 @@ always @(*) begin
         S35: next_state = LD3320_done  ? S36 : S35;
         S36: next_state = LD3320_done  ? S37 : S36;
         S37: next_state = LD3320_done  ? S38 : S37;
-        S38: next_state = LD3320_done  ? S39 : S38;
-        S38: next_state = counter_done ? S0  : S39;
-		  S40: next_state = S0;
+        S38: next_state = LD3320_done  ? S0  : S38;
+        S39: next_state = S0;
         default:next_state = S0; 
     endcase
 end
@@ -148,9 +133,13 @@ always @(*) begin
             address = 8'hB2;
             data = 8'h00;
             invalid = 1'b0;
+            if(data_ready) begin
+                data_tmp = data_valid;
+            end
         end
         S2 : begin
             judge = (data_tmp == 8'h21) ? 1'b1 : 1'b0;
+            data_tmp = 8'h00;
             cnt = cnt + 4'b1; 
         end
         S3: begin//LD_WriteReg(0xc1, pCode[0] );识别码 0
@@ -176,7 +165,7 @@ always @(*) begin
             LD3320_ena = 1'b0;
             counter_ena = 1'b1;
             sel = 1'b0;
-            div_num = 12'd9;
+            div_num = 8'd03;
         end
         S7: begin//LD_WriteReg(0x08, 0x00);
             LD3320_ena = (previous_state == S7) ? 1'b0 : 1'b1;
@@ -188,7 +177,7 @@ always @(*) begin
             LD3320_ena = 1'b0;
             counter_ena = 1'b1;
             sel = 1'b0;
-            div_num = 12'd9;
+            div_num = 8'd03;
         end
         //写入dian zu
         S9: begin//LD_WriteReg(0x5, sRecog[k][nAsrAddLength]);    d
@@ -201,37 +190,37 @@ always @(*) begin
             LD3320_ena = (previous_state == S10) ? 1'b0 : 1'b1;
             sel = 1'b1;
             address = 8'h05;
-            data = 8'h69;
+            data = 8'h61;
         end
         S11: begin//LD_WriteReg(0x5, sRecog[k][nAsrAddLength]);    a
             LD3320_ena = (previous_state == S11) ? 1'b0 : 1'b1;
             sel = 1'b1;
             address = 8'h05;
-            data = 8'h61;
+            data = 8'h69;
         end
         S12: begin//LD_WriteReg(0x5, sRecog[k][nAsrAddLength]);    n
             LD3320_ena = (previous_state == S12) ? 1'b0 : 1'b1;
             sel = 1'b1;
             address = 8'h05;
-            data = 8'h6E;
+            data = 8'h20;
         end
         S13: begin//LD_WriteReg(0x5, sRecog[k][nAsrAddLength]);    space
             LD3320_ena = (previous_state == S13) ? 1'b0 : 1'b1;
             sel = 1'b1;
             address = 8'h05;
-            data = 8'h20;
+            data = 8'h7A;
         end
         S14: begin//LD_WriteReg(0x5, sRecog[k][nAsrAddLength]);    z
             LD3320_ena = (previous_state == S14) ? 1'b0 : 1'b1;
             sel = 1'b1;
             address = 8'h05;
-            data = 8'h7A;
+            data = 8'h68;
         end
         S15: begin//LD_WriteReg(0x5, sRecog[k][nAsrAddLength]);    u
             LD3320_ena = (previous_state == S15) ? 1'b0 : 1'b1;
             sel = 1'b1;
             address = 8'h05;
-            data = 8'h75;
+            data = 8'h65;
         end
         //end
         S16: begin//LD_WriteReg(0xb9, nAsrAddLength); nAsrAddLength = 7
@@ -260,9 +249,13 @@ always @(*) begin
             address = 8'hB2;
             data = 8'h00;
             invalid = 1'b0;
+            if(data_ready) begin
+                data_tmp = data_valid;
+            end
         end
         S20 : begin
             judge = (data_tmp == 8'h21) ? 1'b1 : 1'b0;
+            data_tmp = 8'h00;
             cnt = cnt + 4'b1; 
         end
         //写入dian rong
@@ -289,7 +282,7 @@ always @(*) begin
             LD3320_ena = 1'b0;
             counter_ena = 1'b1;
             sel = 1'b0;
-            div_num = 12'd9;
+            div_num = 8'd03;
         end
         S25: begin//LD_WriteReg(0x08, 0x00);
             LD3320_ena = (previous_state == S25) ? 1'b0 : 1'b1;
@@ -301,7 +294,7 @@ always @(*) begin
             LD3320_ena = 1'b0;
             counter_ena = 1'b1;
             sel = 1'b0;
-            div_num = 12'd9;
+            div_num = 8'd03;
         end
         //dian zu
         S27: begin//LD_WriteReg(0x5, sRecog[k][nAsrAddLength]); d
@@ -361,7 +354,7 @@ always @(*) begin
         S36: begin//LD_WriteReg(0xb9, nAsrAddLength);  nAsrAddLength = 9
             LD3320_ena = (previous_state == S36) ? 1'b0 : 1'b1;
             sel = 1'b1;
-            address = 8'hB9;
+            address = 8'h09;
             data = 8'h09;
         end
         S37: begin//LD_WriteReg(0xb2, 0xff);
@@ -375,15 +368,9 @@ always @(*) begin
             sel = 1'b1;
             address = 8'h37;
             data = 8'h04;
-        end
-		  S39: begin//delay(1);
-            LD3320_ena = 1'b0;
-            counter_ena = 1'b1;
-            sel = 1'b0;
-            div_num = 12'd7;
             done = 1'b1;
         end
-        S40: begin
+        S39: begin
             LD3320_ena = 1'b0;
             sel = 1'b1;
             address = 8'h00;
@@ -400,21 +387,19 @@ always @(*) begin
 end
 LD3320WriteRead LD3320WriteRead_dut (
   .clk (clk ),
-  .rst_n (sys_rstn ),
+  .rst_n (sys_rstn),
   .ena (LD3320_ena ),
-  .sel (sel ), //1为写0为读
+  .sel (sel ),//1为写0为读
   .address (address ),
   .data (data ),
-  .P_in (P_in ),
-  .P_sel (P_sel ), //1为写0为读
-  .P_out (P_out ),
+  .P (P ),
   .A0 (A0 ),
   .CSB (CSB ),
   .WRB (WRB ),
   .RDB (RDB ),
   .data_valid (data_valid ),
   .data_ready (data_ready ),
-  .done  ( LD3320_done)
+  .done  (LD3320_done)
 );
 counter counter_inst(
     .clk(clk),

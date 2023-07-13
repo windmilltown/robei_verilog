@@ -35,29 +35,29 @@ always @(*) begin
     case(state)
         S0: begin
             RST = 1'b1;
-            CSB = 1'b1;
+            CSB = 1'b0;
         end
         S1: begin
             RST = 1'b0;
-            CSB = 1'b1;
+            CSB = 1'b0;
         end
         S2: begin
+            RST = 1'b1;
+            CSB = 1'b0;
+        end
+        S3: begin
             RST = 1'b1;
             CSB = 1'b1;
         end
         S3: begin
             RST = 1'b1;
-            CSB = 1'b0;
-        end
-        S4: begin
-            RST = 1'b1;
             CSB = 1'b1;
         end
         default: begin
             RST = 1'b1;
-            CSB = 1'b1;
+            CSB = 1'b0;
         end 
     endcase
 end
-assign done = (state == S4);
+assign done = state == S3;
 endmodule

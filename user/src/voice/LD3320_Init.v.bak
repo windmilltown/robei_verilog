@@ -2,9 +2,7 @@ module LD3320_Init(
     input clk,
     input sys_rstn,
     input ena,//
-    input [7:0] P_in,
-    output [7:0] P_out,
-    output P_sel,
+    inout [7:0] P,
     output A0,
     output CSB,
     output WRB,
@@ -49,14 +47,12 @@ S33 = 6'd33;
 reg [5:0] state, previous_state, next_state;
 reg LD3320_ena, counter_ena, sel;
 reg [7:0] address, data;
-reg [11:0] div_num;
-wire [7:0] data_valid;
-wire data_ready;
+reg [7:0] div_num;
+wire data_valid, data_ready;
 wire LD3320_done, counter_done;
 always@(posedge clk or negedge sys_rstn) begin
     if(!sys_rstn) begin
         state <= S0;
-		  previous_state <= S0;
     end
     else begin
         state <= next_state;
@@ -111,8 +107,6 @@ always @(*) begin
         S0: begin//未使能
             LD3320_ena = 1'b0;
             sel = 1'b0;
-            address = 8'h00;
-            data = 8'h00;
         end
         S1: begin//LD_ReadReg(0x06);  
             LD3320_ena = (previous_state == S1) ? 1'b0 : 1'b1;
@@ -130,7 +124,7 @@ always @(*) begin
             LD3320_ena = 1'b0;
             counter_ena = 1'b1;
             sel = 1'b0;
-            div_num = 12'd70;
+            div_num = 8'd26;
         end
         S4: begin//LD_ReadReg(0x06); 
             LD3320_ena = (previous_state == S4) ? 1'b0 : 1'b1;
@@ -148,7 +142,7 @@ always @(*) begin
             LD3320_ena = 1'b0;
             counter_ena = 1'b1;
             sel = 1'b0;
-            div_num = 12'd35;
+            div_num = 8'd13;
         end
         S7: begin//LD_WriteReg(0xCF, 0x43);
             LD3320_ena = (previous_state == S7) ? 1'b0 : 1'b1;
@@ -160,7 +154,7 @@ always @(*) begin
             LD3320_ena = 1'b0;
             counter_ena = 1'b1;
             sel = 1'b0;
-            div_num = 12'd35;
+            div_num = 8'd13;
         end
         S9: begin//LD_WriteReg(0xCB, 0x02);
             LD3320_ena = (previous_state == S9) ? 1'b0 : 1'b1;
@@ -186,13 +180,13 @@ always @(*) begin
             address = 8'h19;
             data = 8'h40;
         end
-        S13: begin//LD_WriteReg(0x1B, LD_PLL_ASR_1B);  LD_PLL_ASR_1B = 0x48
+        S13: begin//LD_WriteReg(0x1B, LD_PLL_ASR_1B);  LD_PLL_ASR_1B = 18
             LD3320_ena = (previous_state == S13) ? 1'b0 : 1'b1;
             sel = 1'b1;
             address = 8'h1B;
-            data = 8'h48;
+            data = 8'h18;
         end
-        S14: begin//LD_WriteReg(0x1D, LD_PLL_ASR_1D);;  LD_PLL_ASR_1D = 1F
+        S14: begin//LD_WriteReg(0x1D, LD_PLL_ASR_1D);;  LD_PLL_ASR_1D = 31 0x1F
             LD3320_ena = (previous_state == S14) ? 1'b0 : 1'b1;
             sel = 1'b1;
             address = 8'h1D;
@@ -202,7 +196,7 @@ always @(*) begin
             LD3320_ena = 1'b0;
             counter_ena = 1'b1;
             sel = 1'b0;
-            div_num = 12'd70;
+            div_num = 8'd26;
         end
         S16: begin//LD_WriteReg(0xCD, 0x04);
             LD3320_ena = (previous_state == S16) ? 1'b0 : 1'b1;
@@ -220,7 +214,7 @@ always @(*) begin
             LD3320_ena = 1'b0;
             counter_ena = 1'b1;
             sel = 1'b0;
-            div_num = 12'd13;
+            div_num = 8'd13;
         end
         S19: begin//LD_WriteReg(0xB9, 0x00);
             LD3320_ena = (previous_state == S19) ? 1'b0 : 1'b1;
@@ -257,7 +251,7 @@ always @(*) begin
             LD3320_ena = 1'b0;
             counter_ena = 1'b1;
             sel = 1'b0;
-            div_num = 12'd70;
+            div_num = 8'd26;
         end
         S25: begin//LD_WriteReg(0x3C, 0x80);    
             LD3320_ena = (previous_state == S25) ? 1'b0 : 1'b1;
@@ -275,7 +269,7 @@ always @(*) begin
             LD3320_ena = (previous_state == S27) ? 1'b0 : 1'b1;
             sel = 1'b1;
             address = 8'h38;
-            data = 8'hFF;
+            data = 8'hff;
         end
         S28: begin//LD_WriteReg(0x3A, 0x07);
             LD3320_ena = (previous_state == S28) ? 1'b0 : 1'b1;
@@ -312,36 +306,30 @@ always @(*) begin
             LD3320_ena = 1'b0;
             counter_ena = 1'b1;
             sel = 1'b0;
-            div_num = 12'd7;
+            div_num = 8'd03;
             done = 1'b1;
         end
         default: begin
-            LD3320_ena = 1'b0;
-            sel = 1'b0;
-            address = 8'h00;
-            data = 8'h00;
+
         end 
     endcase
 end
 LD3320WriteRead LD3320WriteRead_dut (
   .clk (clk ),
-  .rst_n (sys_rstn ),
+  .rst_n (sys_rstn),
   .ena (LD3320_ena ),
-  .sel (sel ), //1为写0为读
+  .sel (sel ),//1为写0为读
   .address (address ),
   .data (data ),
-  .P_in (P_in ),
-  .P_sel (P_sel ), //1为写0为读
-  .P_out (P_out ),
+  .P (P ),
   .A0 (A0 ),
   .CSB (CSB ),
   .WRB (WRB ),
   .RDB (RDB ),
   .data_valid (data_valid ),
   .data_ready (data_ready ),
-  .done  ( LD3320_done)
+  .done  (LD3320_done)
 );
-
 counter counter_inst(
     .clk(clk),
     .sys_rstn(sys_rstn),

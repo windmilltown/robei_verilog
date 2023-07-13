@@ -2,14 +2,12 @@ module LD3320_Interrupt(
     input clk,
     input sys_rstn,
     input ena,//
-    input [7:0] P_in,
-    output P_sel,
-    output [7:0] P_out,
+    inout [7:0] P,
     output A0,
     output CSB,
     output WRB,
     output RDB,
-    output done,
+    output reg done,
     output reg invalid
 );
 parameter [5:0] 
@@ -35,42 +33,21 @@ S18 = 6'd18,
 S19 = 6'd19,
 S20 = 6'd20;
 reg [5:0] state, previous_state, next_state;
-reg counter_ena, LD3320_ena, sel;
+reg LD3320_ena, sel;
 reg [7:0] address, data;
-reg [11:0] div_num;
+reg [7:0] div_num;
 wire data_ready;
-wire counter_done, LD3320_done;
+wire LD3320_done;
 wire [7:0] data_valid;
 reg [7:0] data_tmp;
 reg judge;
 always@(posedge clk or negedge sys_rstn) begin
     if(!sys_rstn) begin
         state <= S0;
-		  previous_state <= S0;
-		  data_tmp <= 8'h00;
-		  invalid <= 1'b0;
     end
     else begin
         state <= next_state;
         previous_state <= state;
-		  if(state == S0) begin
-				invalid <= 1'b0;
-		  end
-		  else if(state == S2 || state == S6 ||state == S10) begin
-				invalid <= ~judge;
-		  end
-		  else begin
-				invalid <= invalid;
-		  end
-		  if(data_ready) begin
-           data_tmp <= data_valid;
-        end
-			else if(state == S4 || state == S11) begin
-					data_tmp <= 8'h00;
-			end
-			else begin
-					data_tmp <= data_tmp;
-			end
     end
 end
 always @(*) begin
@@ -95,26 +72,34 @@ always @(*) begin
         S17: next_state = LD3320_done  ? S18 : S17;
         S18: next_state = LD3320_done  ? S19 : S18;
         S19: next_state = LD3320_done  ? S20 : S19;
-		  S20: next_state = LD3320_done  ? S0  : S20;
+        S20: next_state = LD3320_done  ? S0 : S20;
         default:next_state = S0; 
     endcase
 end
 always @(*) begin
     address = 8'h00;
     data = 8'h00;
+    done = 1'b0;
     case(state)
         S0: begin//未使能
             LD3320_ena = 1'b0;
             sel = 1'b0;
+            invalid = 1'b0;
         end
         S1: begin//LD_ReadReg(0x2B);  
             LD3320_ena = (previous_state == S1) ? 1'b0 : 1'b1;
             sel = 1'b0;
-            address = 8'h2B;
+            address = 8'h06;
             data = 8'h00;
+            invalid = 1'b0;
+            if(data_ready) begin
+                data_tmp = data_valid;
+            end
         end
         S2: begin//判断
             judge = data_tmp[4] ? 1'b1 : 1'b0;
+            invalid = ~judge;
+            data_tmp = 8'h00;
         end
         S3: begin//LD_WriteReg(0x29,0) ;
             LD3320_ena = (previous_state == S3) ? 1'b0 : 1'b1;
@@ -131,29 +116,44 @@ always @(*) begin
         S5: begin//LD_ReadReg(0xb2)
             LD3320_ena = (previous_state == S5) ? 1'b0 : 1'b1;
             sel = 1'b0;
-            address = 8'hB2;
+            address = 8'hb2;
             data = 8'h00;
+            if(data_ready) begin
+                data_tmp = data_valid;
+            end
         end
         S6: begin//判断
             judge = (data_tmp == 8'h21);
+            invalid = ~judge;
+            data_tmp = 8'h00;
         end
         S7: begin//LD_ReadReg(0xbf);
             LD3320_ena = (previous_state == S7) ? 1'b0 : 1'b1;
             sel = 1'b0;
             address = 8'hBF;
             data = 8'h00;
+            if(data_ready) begin
+                data_tmp = data_valid;
+            end
         end
         S8: begin//判断
             judge = (data_tmp == 8'h35);
+            invalid = ~judge;
+            data_tmp = 8'h00;
         end
         S9: begin//LD_ReadReg(0xba);
             LD3320_ena = (previous_state == S9) ? 1'b0 : 1'b1;
             sel = 1'b0;
             address = 8'hBA;
             data = 8'h00;
+            if(data_ready) begin
+                data_tmp = data_valid;
+            end
         end
         S10: begin//判断
-            judge = ((data_tmp > 8'h00) && (data_tmp <= 8'h04));
+            judge = ((data_tmp > 8'h00) && (data_tmp <= 8'h02));
+            invalid = ~judge;
+            data_tmp = 8'h00;
         end
         S11: begin//LD_WriteReg(0x2b, 0);
             LD3320_ena = (previous_state == S11) ? 1'b0 : 1'b1;
@@ -203,48 +203,38 @@ always @(*) begin
             address = 8'h08;
             data = 8'h01;
         end
-        S19: begin//LD_WriteReg(0x08,0);	/*清除FIFO_DATA后 再次写0*/
+        S19: begin//LD_WriteReg(0xB9, 0x00);
             LD3320_ena = (previous_state == S19) ? 1'b0 : 1'b1;
+            sel = 1'b1;
+            address = 8'hB9;
+            data = 8'h00;
+        end
+        S20: begin//LD_WriteReg(0x08,0);	/*清除FIFO_DATA后 再次写0*/
+            LD3320_ena = (previous_state == S20) ? 1'b0 : 1'b1;
             sel = 1'b1;
             address = 8'h08;
             data = 8'h00;
+            done = 1'b1;
         end
-		  S20: begin
-            LD3320_ena = 1'b0;
-            sel = 1'b1;
-            address = 8'h00;
-            data = 8'h00;
-		  end
         default: begin
-            LD3320_ena = 1'b0;
-            sel = 1'b0;
+
         end 
     endcase
 end
-assign done = (state == S20);
 LD3320WriteRead LD3320WriteRead_dut (
   .clk (clk ),
-  .rst_n (sys_rstn ),
+  .rst_n (sys_rstn),
   .ena (LD3320_ena ),
-  .sel (sel ), //1为写0为读
+  .sel (sel ),//1为写0为读
   .address (address ),
   .data (data ),
-  .P_in (P_in ),
-  .P_sel (P_sel ), //1为写0为读
-  .P_out (P_out ),
+  .P (P ),
   .A0 (A0 ),
   .CSB (CSB ),
   .WRB (WRB ),
   .RDB (RDB ),
   .data_valid (data_valid ),
   .data_ready (data_ready ),
-  .done  ( LD3320_done)
-);
-counter counter_inst(
-    .clk(clk),
-    .sys_rstn(sys_rstn),
-    .ena(counter_ena),
-    .div_num(div_num),
-    .done(counter_done)
+  .done  (LD3320_done)
 );
 endmodule

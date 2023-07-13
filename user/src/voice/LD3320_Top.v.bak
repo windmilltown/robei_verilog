@@ -3,9 +3,7 @@ module LD3320_Top(
     input sys_rstn,
     input ena,
     input interrupt,
-    input [7:0] P_in,
-    output reg P_sel,
-    output reg [7:0] P_out,
+    inout [7:0] P,
     output reg A0,
     output reg CSB,
     output reg WRB,
@@ -27,28 +25,31 @@ WaitForData = 4'd8,
 Interrupt = 4'd9,
 GetResult = 4'd10,
 SendResult = 4'd11;
-reg [2:0] cnt;
-reg [3:0] previous_state, state, next_state;/*synthesis noprune*/
+reg [3:0] previous_state, state, next_state;
 reg RST_ena, Init_ena, AddFixed_ena, Run_ena, Interrupt_ena, GetResult_ena, counter_ena;
 wire RST_done, Init_done, AddFixed_done, Run_done, Interrupt_done, GetResult_done, counter_done;
 wire AddFixed_invalid, Run_invalid, Interrupt_invalid;
-reg [11:0] div_num;
-wire [7:0] Init_P_out, AddFixed_P_out, Run_P_out, Interrupt_P_out, GetResult_P_out;
-wire Init_P_sel, AddFixed_P_sel, Run_P_sel, Interrupt_P_sel, GetResult_P_sel;
+reg [7:0] div_num;
+reg [7:0] P_tmp;
+wire [7:0] Init_P, AddFixed_P, Run_P, Interrupt_P, GetResult_P;
 wire Init_A0, AddFixed_A0, Run_A0, Interrupt_A0, GetResult_A0;
 wire RST_CSB, Init_CSB, AddFixed_CSB, Run_CSB, Interrupt_CSB, GetResult_CSB;
 wire Init_WRB, AddFixed_WRB, Run_WRB, Interrupt_WRB, GetResult_WRB;
 wire Init_RDB, AddFixed_RDB, Run_RDB, Interrupt_RDB, GetResult_RDB;
+reg [7:0] data_tmp;
 wire [7:0] data_valid;
 wire data_ready;
-always@(posedge clk or negedge sys_rstn)begin
+always@(posedge clk or negedge sys_rstn or negedge interrupt)begin
     if(~sys_rstn) begin
-		  previous_state <= Idle;
         state <= Idle;
+    end
+    else if(!interrupt) begin
+        state <= next_state;
+        previous_state <=state;
     end
     else begin
         state <= next_state;
-        previous_state <= state;
+        previous_state <=state;
     end
 end
 always @(*) begin
@@ -60,8 +61,8 @@ always @(*) begin
         Delay_2     : next_state = counter_done   ? AsrAddFixed : Delay_2;
         AsrAddFixed : next_state = AddFixed_done  ? (AddFixed_invalid ? RST : Delay_3) : AsrAddFixed;
         Delay_3     : next_state = counter_done   ? AsrRun      : Delay_3;
-        AsrRun      : next_state = Run_done       ? (Run_invalid ? RST : WaitForData)  : AsrRun;
-        WaitForData : next_state = ~interrupt      ? Interrupt   :  WaitForData;
+        AsrRun      : next_state = Run_done       ? (Run_invalid ? RST : WaitForData)  : AsrAddFixed;
+        WaitForData : next_state = interrupt      ? Interrupt   :  WaitForData;
         Interrupt   : next_state = Interrupt_done ? (Interrupt_invalid ? RST : GetResult) : Interrupt;
         GetResult   : next_state = GetResult_done ? SendResult  : GetResult;
         SendResult  : next_state = RST;
@@ -69,10 +70,6 @@ always @(*) begin
     endcase
 end
 always @(*) begin
-	A0 = 1'b0;
-    CSB = 1'b1;
-    WRB = 1'b1;
-    RDB = 1'b1;
     RST_ena = 1'b0;
     Init_ena = 1'b0;
     AddFixed_ena = 1'b0;
@@ -83,8 +80,7 @@ always @(*) begin
     result_ready = 1'b0;
     case(state)
         Idle:begin
-            P_out = 8'h00;
-            P_sel = 1'b0;
+            P_tmp = 8'h00;
             A0 = 1'b0;
             CSB = 1'b1;
             WRB = 1'b1;
@@ -93,9 +89,8 @@ always @(*) begin
             result_ready = 1'b0;
         end
         RST:begin
-            P_out = 8'h00;
-            P_sel = 1'b0;
             RST_ena = 1'b1;
+            P_tmp = 8'h00;
             A0 = 1'b0;
             CSB = RST_CSB;
             WRB = 1'b1;
@@ -104,14 +99,11 @@ always @(*) begin
             result_ready = 1'b0;
         end
         Delay_1:begin
-            P_out = 8'h00;
-            P_sel = 1'b0;
             counter_ena = 1'b1;
-            div_num = 12'd700;
+            div_num = 8'd255;
         end
         AsrInit:begin
-            P_out = Init_P_out;
-            P_sel = Init_P_sel;
+            P_tmp = Init_P;
             Init_ena = 1'b1;
             A0 = Init_A0;
             CSB = Init_CSB;
@@ -121,15 +113,12 @@ always @(*) begin
             result_ready = 1'b0;
         end
         Delay_2:begin
-            P_out = 8'h00;
-            P_sel = 1'b0;
             counter_ena = 1'b1;
-            div_num = 12'd700;
+            div_num = 8'd255;
         end
         AsrAddFixed:begin
-            P_out = AddFixed_P_out;
-            P_sel = AddFixed_P_sel;
             AddFixed_ena = 1'b1;
+            P_tmp = AddFixed_P;
             A0 = AddFixed_A0;
             CSB = AddFixed_CSB;
             WRB = AddFixed_WRB;
@@ -138,15 +127,12 @@ always @(*) begin
             result_ready = 1'b0;
         end
         Delay_3:begin
-            P_out = 8'h00;
-            P_sel = 1'b0;
             counter_ena = 1'b1;
-            div_num = 12'd900;
+            div_num = 8'd255;
         end
         AsrRun:begin
-            P_out = Run_P_out;
-            P_sel = Run_P_sel;
             Run_ena = 1'b1;
+            P_tmp = Run_P;
             A0 = Run_A0;
             CSB = Run_CSB;
             WRB = Run_WRB;
@@ -155,8 +141,7 @@ always @(*) begin
             result_ready = 1'b0;
         end
         WaitForData:begin
-            P_out = 8'h00;
-            P_sel = 1'b0;
+            P_tmp = 8'h00;
             A0 = 1'b0;
             CSB = 1'b1;
             WRB = 1'b1;
@@ -165,9 +150,8 @@ always @(*) begin
             result_ready = 1'b0;
         end
         Interrupt:begin
-            P_out = Interrupt_P_out;
-            P_sel = Interrupt_P_sel;
             Interrupt_ena = 1'b1;
+            P_tmp = Interrupt_P;
             A0 = Interrupt_A0;
             CSB = Interrupt_CSB;
             WRB = Interrupt_WRB;
@@ -176,27 +160,24 @@ always @(*) begin
             result_ready = 1'b0;
         end
         GetResult:begin
-            P_out = GetResult_P_out;
-            P_sel = GetResult_P_sel;
             GetResult_ena = 1'b1;
+            P_tmp = GetResult_P;
             A0 = GetResult_A0;
             CSB = GetResult_CSB;
             WRB = GetResult_WRB;
             RDB = GetResult_RDB;
+            result_valid = 8'h00;
             result_ready = 1'b0;
             if(data_ready) begin
-                result_valid = data_valid;
+                data_tmp = data_valid;
             end
         end
         SendResult:begin
-            P_out = 8'h00;
-            P_sel = 1'b0;
-            result_valid = result_valid;
+            result_valid = data_tmp;
             result_ready = 1'b1;
         end
         default:begin
-            P_out = 8'h00;
-            P_sel = 1'b0;
+            P_tmp = 8'h00;
             A0 = 1'b0;
             CSB = 1'b1;
             WRB = 1'b1;
@@ -226,9 +207,7 @@ LD3320_Init LD3320_Init_dut (
   .clk (clk ),
   .sys_rstn (sys_rstn ),
   .ena (Init_ena ),
-  .P_in (P_in ),
-  .P_out (Init_P_out ),
-  .P_sel (Init_P_sel ),
+  .P (Init_P ),
   .A0 (Init_A0 ),
   .CSB (Init_CSB ),
   .WRB (Init_WRB ),
@@ -239,9 +218,7 @@ LD3320_AsrAddFixed LD3320_AsrAddFixed_dut (
   .clk (clk ),
   .sys_rstn (sys_rstn ),
   .ena (AddFixed_ena ),
-  .P_in (P_in ),
-  .P_sel (AddFixed_P_sel ),
-  .P_out (AddFixed_P_out ),
+  .P (AddFixed_P ),
   .A0 (AddFixed_A0 ),
   .CSB (AddFixed_CSB ),
   .WRB (AddFixed_WRB ),
@@ -253,9 +230,7 @@ LD3320_AsrRun LD3320_AsrRun_dut (
   .clk (clk ),
   .sys_rstn (sys_rstn ),
   .ena (Run_ena ),
-  .P_in (P_in ),
-  .P_sel (Run_P_sel ),
-  .P_out (Run_P_out ),
+  .P (Run_P ),
   .A0 (Run_A0 ),
   .CSB (Run_CSB ),
   .WRB (Run_WRB ),
@@ -266,10 +241,8 @@ LD3320_AsrRun LD3320_AsrRun_dut (
 LD3320_Interrupt LD3320_Interrupt_dut (
   .clk (clk ),
   .sys_rstn (sys_rstn ),
-  .ena (Interrupt_ena ),
-  .P_in (P_in ),
-  .P_sel (Interrupt_P_sel ),
-  .P_out (Interrupt_P_out ),
+  .ena ( Interrupt_ena ),
+  .P (Interrupt_P ),
   .A0 (Interrupt_A0 ),
   .CSB (Interrupt_CSB ),
   .WRB (Interrupt_WRB ),
@@ -281,18 +254,17 @@ LD3320WriteRead LD3320WriteRead_dut (
   .clk (clk ),
   .rst_n (sys_rstn ),
   .ena (GetResult_ena ),
-  .sel (1'b0 ),
-  .address (8'hC5 ),
-  .data (8'h00 ),
-  .P_in (P_in ),
-  .P_sel (GetResult_P_sel ),
-  .P_out (GetResult_P_out ),
+  .sel (1'b0),
+  .address (8'hC5),
+  .data (8'h00),
+  .P (GetResult_P ),
   .A0 (GetResult_A0 ),
   .CSB (GetResult_CSB ),
   .WRB (GetResult_WRB ),
   .RDB (GetResult_RDB ),
-  .data_valid (data_valid ),
-  .data_ready (data_ready ),
+  .data_valid (data_valid),
+  .data_ready (data_ready),
   .done  ( GetResult_done)
 );
+assign P = P_tmp;
 endmodule
